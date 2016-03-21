@@ -476,24 +476,31 @@
             initialColorContainer.delegate(".sp-thumb-el:nth-child(1)", paletteEvent, { ignore: true }, paletteElementClick);
         }
 
+        function getStorage() {
+            try {
+                return window.localStorage;
+            } catch(e) {
+                if (!window.spectrum_inMemoryStorage) {
+                    window.spectrum_inMemoryStorage = {};
+                }
+                return window.spectrum_inMemoryStorage;
+            }
+        }
+
         function updateSelectionPaletteFromStorage() {
-
-            if (localStorageKey && window.localStorage) {
-
+            if (localStorageKey) {
+                var storage = getStorage();
                 // Migrate old palettes over to new format.  May want to remove this eventually.
                 try {
-                    var oldPalette = window.localStorage[localStorageKey].split(",#");
+                    var oldPalette = storage[localStorageKey].split(",#");
                     if (oldPalette.length > 1) {
-                        delete window.localStorage[localStorageKey];
+                        delete storage[localStorageKey];
                         $.each(oldPalette, function(i, c) {
                              addColorToSelectionPalette(c);
                         });
                     }
-                }
-                catch(e) { }
 
-                try {
-                    selectionPalette = window.localStorage[localStorageKey].split(";");
+                    selectionPalette = storage[localStorageKey].split(";");
                 }
                 catch (e) { }
             }
@@ -501,6 +508,7 @@
 
         function addColorToSelectionPalette(color) {
             if (showSelectionPalette) {
+                var storage = getStorage();
                 var rgb = tinycolor(color).toRgbString();
                 if (!paletteLookup[rgb] && $.inArray(rgb, selectionPalette) === -1) {
                     selectionPalette.push(rgb);
@@ -509,11 +517,8 @@
                     }
                 }
 
-                if (localStorageKey && window.localStorage) {
-                    try {
-                        window.localStorage[localStorageKey] = selectionPalette.join(";");
-                    }
-                    catch(e) { }
+                if (localStorageKey) {
+                    storage[localStorageKey] = selectionPalette.join(";");
                 }
             }
         }
